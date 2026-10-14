@@ -11,7 +11,7 @@ return function(parentContainer)
 
     local uiLayout = Instance.new("UIListLayout", row)
     uiLayout.FillDirection = Enum.FillDirection.Horizontal
-    uiLayout.SortOrder = Enum.SortOrder.SortOrder
+    uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
     uiLayout.Padding = UDim.new(0, 6)
 
     -- 1. Botón azul de acción (no toggle)
@@ -31,7 +31,7 @@ return function(parentContainer)
     tb.Font = Enum.Font.SourceSansBold
     tb.Text = tostring(fuerzaLanzamiento)
     tb.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tb.TextSize4 = 14
+    tb.TextSize = 14
     tb.ClearTextOnFocus = false
     Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 6)
 
@@ -59,7 +59,6 @@ return function(parentContainer)
             if child:IsA("Frame") then
                 local btn = child:FindFirstChildOfClass("TextButton")
                 if btn and btn.Text:find("Imán: ON") then
-                    -- Forzamos el clic para que se apague correctamente
                     for _, conn in ipairs(getconnections(btn.MouseButton1Click)) do
                         conn:Fire()
                     end
