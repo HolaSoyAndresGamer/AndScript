@@ -1,4 +1,3 @@
--- [[ AndScript Hub - Módulo Fly ]] --
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -42,14 +41,37 @@ return function(parentContainer)
                     if not char or not root.Parent then return end
                     local cam = Camera.CFrame
                     local moveDir = hum.MoveDirection
+                    local vel = Vector3.new(0, 0, 0)
                     
                     if moveDir.Magnitude > 0 then
-                        local hVel = moveDir * speed
-                        local camLookFlat = Vector3.new(cam.LookVector.X, 0, cam.LookVector.Z).Unit
-                        local forwardBackwardAmount = moveDir:Dot(camLookFlat)
-                        local yVel = cam.LookVector.Y * math.abs(forwardBackwardAmount) * speed
-                        bv.Velocity = Vector3.new(hVel.X, yVel, hVel.Z)
+                        local look = cam.LookVector
+                        local right = cam.RightVector
+                        
+                        -- Aplanamos para calcular la dirección del joystick sin errores de división
+                        local flatLook = Vector3.new(look.X, 0, look.Z)
+                        if flatLook.Magnitude > 0.001 then
+                            flatLook = flatLook.Unit
+                        else
+                            flatLook = Vector3.new(0, 0, -1)
+                        end
+                        
+                        local flatRight = Vector3.new(right.X, 0, right.Z)
+                        if flatRight.Magnitude > 0.001 then
+                            flatRight = flatRight.Unit
+                        else
+                            flatRight = Vector3.new(1, 0, 0)
+                        end
+                        
+                        local fwdAmount = moveDir:Dot(flatLook)
+                        local rightAmount = moveDir:Dot(flatRight)
+                        
+                        -- Aplicamos el vector tridimensional completo de la cámara
+                        vel = (look * fwdAmount) + (right * rightAmount)
+                        if vel.Magnitude > 0 then
+                            vel = vel.Unit * speed
+                        end
                     else
+                        -- Respaldo por teclado si se usa PC
                         local kbMove = Vector3.new(0, 0, 0)
                         if UserInputService:IsKeyDown(Enum.KeyCode.W) then kbMove += cam.LookVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.S) then kbMove -= cam.LookVector end
@@ -59,11 +81,13 @@ return function(parentContainer)
                         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then kbMove -= Vector3.new(0, 1, 0) end
                         
                         if kbMove.Magnitude > 0 then
-                            bv.Velocity = kbMove.Unit * speed
+                            vel = kbMove.Unit * speed
                         else
-                            bv.Velocity = Vector3.new(0, 0.1, 0)
+                            vel = Vector3.new(0, 0.1, 0)
                         end
                     end
+                    
+                    bv.Velocity = vel
                     bg.CFrame = cam
                 end)
             end
