@@ -14,7 +14,7 @@ return function(parentContainer)
     uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
     uiLayout.Padding = UDim.new(0, 6)
 
-    -- 1. Botón azul de acción (no toggle)
+    -- 1. Botón azul de acción
     local b = Instance.new("TextButton", row)
     b.BackgroundColor3 = Color3.fromRGB(50, 120, 220) -- Color azul
     b.Size = UDim2.new(0.65, 0, 1, 0)
@@ -54,33 +54,33 @@ return function(parentContainer)
             end
         end)
 
-        -- Buscamos el botón del Imán visualmente dentro del contenedor y si está encendido, simulamos su clic o reseteamos su texto/color
-        for _, child in ipairs(parentContainer:GetChildren()) do
-            if child:IsA("Frame") then
-                for _, elem in ipairs(child:GetChildren()) do
-                    if elem:IsA("TextButton") and elem.Text:find("Imán: ON") then
-                        -- Cambiamos su texto y color de forma directa para reflejar que se apagó
-                        elem.Text = "Imán: OFF"
-                        elem.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-                        
-                        -- Intentamos disparar el evento si el ejecutor lo soporta, o dejamos que el ciclo se detenga
-                        pcall(function()
-                            for _, conn in ipairs(getconnections(elem.MouseButton1Click)) do
-                                conn:Fire()
-                            end
-                        end)
+        -- 1. Apagar el Imán buscando su botón en cualquier contenedor de la interfaz
+        pcall(function()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetChildren()) do
+                if gui.Name == "AndScriptMasterHub" then
+                    for _, desc in ipairs(gui:GetDescendants()) do
+                        if desc:IsA("TextButton") and desc.Text:find("Imán") then
+                            desc.Text = "Imán: OFF"
+                            desc.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+                        end
                     end
                 end
             end
-        end
+        end)
+        
+        -- Señal global opcional por si el imán lee una variable compartida
+        getgenv().AndScriptMagnetActive = false
 
-        -- Lanzar los objetos cercanos
+        -- 2. Lanzar objetos cercanos mediante radio (más efectivo que GetTouchingParts)
         local char = LocalPlayer.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
         if root then
-            for _, p in ipairs(root:GetTouchingParts()) do
-                if p:IsA("BasePart") and not p.Anchored and p.Parent ~= char and not p.IsDescendantOf(char) then
-                    p.Velocity = root.CFrame.LookVector * fuerzaLanzamiento + Vector3.new(0, 30, 0)
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and not obj.Anchored and obj.Parent ~= char and not obj:IsDescendantOf(char) then
+                    local dist = (obj.Position - root.Position).Magnitude
+                    if dist < 20 then -- Si están a menos de 20 studs
+                        obj.Velocity = root.CFrame.LookVector * fuerzaLanzamiento + Vector3.new(0, 40, 0)
+                    end
                 end
             end
         end
