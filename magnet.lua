@@ -1,4 +1,3 @@
--- [[ AndScript Hub - Módulo Imán ]] --
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -16,12 +15,20 @@ return function(parentContainer)
     b.TextSize = 14
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
 
-    b.MouseButton1Click:Connect(function()
-        isMagnetActive = not isMagnetActive
+    local function toggleMagnet(state)
+        isMagnetActive = state
+        getgenv().AndScriptMagnetActive = isMagnetActive -- Guardamos el estado global
+        
         if isMagnetActive then
             b.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
             b.Text = "Imán: ON"
             magnetConn = RunService.Heartbeat:Connect(function()
+                -- Si alguien lo apagó externamente (como el botón Lanzar), se apaga solo aquí
+                if not getgenv().AndScriptMagnetActive then
+                    toggleMagnet(false)
+                    return
+                end
+
                 local char = LocalPlayer.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
                 if root then
@@ -40,5 +47,9 @@ return function(parentContainer)
             b.Text = "Imán: OFF"
             if magnetConn then magnetConn:Disconnect() magnetConn = nil end
         end
+    end
+
+    b.MouseButton1Click:Connect(function()
+        toggleMagnet(not isMagnetActive)
     end)
 end
