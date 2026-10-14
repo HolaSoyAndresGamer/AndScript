@@ -1,4 +1,4 @@
--- [[ Delta Hub - Módulo Fly & Noclip Multiplataforma (Actualizado Táctil) ]] --
+-- [[ Delta Hub - Módulo Fly & Noclip Ultra Estable ]] --
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
@@ -42,30 +42,43 @@ FlyBtn.MouseButton1Click:Connect(function()
         FlyBtn.BackgroundColor3, FlyBtn.Text = Color3.fromRGB(50, 200, 50), "Fly: ON"
         if root and hum then
             hum.PlatformStand = true
-            local bg = Instance.new("BodyGyro", root)
-            bg.Name, bg.MaxTorque = "DFG", Vector3.new(9e9, 9e9, 9e9)
+            
             local bv = Instance.new("BodyVelocity", root)
-            bv.Name, bv.MaxForce = "DFV", Vector3.new(9e9, 9e9, 9e9)
+            bv.Name = "StableFlyVel"
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Velocity = Vector3.new(0, 0, 0)
+            
+            local bg = Instance.new("BodyGyro", root)
+            bg.Name = "StableFlyGyro"
+            bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
             
             flyConn = RunService.RenderStepped:Connect(function()
-                local md = Vector3.new()
-                local cf = Camera.CFrame
+                if not char or not root.Parent then return end
                 
-                -- Soporte para Teclado (PC)
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then md += cf.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then md -= cf.LookVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then md -= cf.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then md += cf.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then md += Vector3.new(0, 1, 0) end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then md -= Vector3.new(0, 1, 0) end
+                local moveDir = Vector3.new(0, 0, 0)
+                local camCF = Camera.CFrame
                 
-                -- Soporte Táctil (Móvil/Delta): Si el monigote se mueve con el joystick o la dirección del humanoide
+                -- Controles de PC (Teclado)
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCF.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+                
+                -- Controles Táctiles (Móvil / Joystick del juego)
                 if hum.MoveDirection.Magnitude > 0 then
-                    md = md + (cf.LookVector * hum.MoveDirection.Z + cf.RightVector * hum.MoveDirection.X)
+                    local rawMove = (camCF.LookVector * hum.MoveDirection.Z + camCF.RightVector * hum.MoveDirection.X)
+                    moveDir = Vector3.new(rawMove.X, hum.MoveDirection.Y, rawMove.Z)
                 end
                 
-                bv.Velocity = md.Unit * flySpeed * (md.Magnitude > 0 and 1 or 0)
-                bg.CFrame = cf
+                if moveDir.Magnitude > 0 then
+                    bv.Velocity = moveDir.Unit * flySpeed
+                else
+                    bv.Velocity = Vector3.new(0, 0.1, 0) -- Se queda suspendido estático sin caerse
+                end
+                
+                bg.CFrame = camCF
             end)
         end
     else
@@ -74,8 +87,8 @@ FlyBtn.MouseButton1Click:Connect(function()
         if char then
             if hum then hum.PlatformStand = false end
             if root then
-                if root:FindFirstChild("DFG") then root.DFG:Destroy() end
-                if root:FindFirstChild("DFV") then root.DFV:Destroy() end
+                if root:FindFirstChild("StableFlyVel") then root.StableFlyVel:Destroy() end
+                if root:FindFirstChild("StableFlyGyro") then root.StableFlyGyro:Destroy() end
             end
         end
     end
