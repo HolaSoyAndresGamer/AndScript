@@ -1,116 +1,77 @@
--- [[ Delta Hub - Menú Principal Personalizado ]] --
+-- [[ Delta Hub Maestro - menuimportante.lua ]] --
 local CoreGui = game:GetService("CoreGui")
 
--- 1. Crear la GUI Principal
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MyPersonalHub"
+ScreenGui.Name = "CloudHub"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 2. Botón para Abrir/Cerrar el Menú (Flotante)
+-- Botón flotante para abrir el menú principal
 local OpenButton = Instance.new("TextButton")
-OpenButton.Name = "OpenButton"
 OpenButton.Parent = ScreenGui
 OpenButton.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 OpenButton.Position = UDim2.new(0.05, 0, 0.15, 0)
-OpenButton.Size = UDim2.new(0, 120, 0, 40)
+OpenButton.Size = UDim2.new(0, 130, 0, 40)
 OpenButton.Font = Enum.Font.SourceSansBold
-OpenButton.Text = "⚙️ Delta Hub"
+OpenButton.Text = "☁️ AndScript Hub"
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.TextSize = 16
 OpenButton.Active = true
 OpenButton.Draggable = true
 
--- Esquinas redondeadas para el botón principal
-local UICornerBtn = Instance.new("UICorner")
-UICornerBtn.CornerRadius = UDim.new(0, 8)
-UICornerBtn.Parent = OpenButton
+local CornerOpen = Instance.new("UICorner")
+CornerOpen.CornerRadius = UDim.new(0, 8)
+CornerOpen.Parent = OpenButton
 
--- 3. Ventana Principal del Menú (Contenedor)
+-- Ventana principal del menú
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 MainFrame.Position = UDim2.new(0.05, 0, 0.22, 0)
-MainFrame.Size = UDim2.new(0, 220, 0, 260)
-MainFrame.Visible = false -- Empieza oculto
+MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 
-local UICornerFrame = Instance.new("UICorner")
-UICornerFrame.CornerRadius = UDim.new(0, 10)
-UICornerFrame.Parent = MainFrame
-
--- Título del Menú
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-TitleLabel.Size = UDim2.new(1, 0, 0, 35)
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.Text = "Mis Scripts Guardados"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 16
-
-local UICornerTitle = Instance.new("UICorner")
-UICornerTitle.CornerRadius = UDim.new(0, 10)
-UICornerTitle.Parent = TitleLabel
-
--- 4. Contenedor de Botones (Layout automático)
-local ScrollingFrame = Instance.new("ScrollingFrame")
-ScrollingFrame.Parent = MainFrame
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.Position = UDim2.new(0, 10, 0, 45)
-ScrollingFrame.Size = UDim2.new(1, -20, 1, -55)
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
-ScrollingFrame.ScrollBarThickness = 4
+local CornerMain = Instance.new("UICorner")
+CornerMain.CornerRadius = UDim.new(0, 8)
+CornerMain.Parent = MainFrame
 
 local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = ScrollingFrame
+UIListLayout.Parent = MainFrame
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
--- Función auxiliar para crear botones dentro del menú fácilmente
-local function addMenuButton(name, callback)
-    local btn = Instance.new("TextButton")
-    btn.Parent = ScrollingFrame
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-    btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 14
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = btn
-    
-    btn.MouseButton1Click:Connect(callback)
-end
+-- Botón dentro del menú que descarga y ejecuta tu flyandnoclip.lua desde la nube
+local FlyScriptButton = Instance.new("TextButton")
+FlyScriptButton.Parent = MainFrame
+FlyScriptButton.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
+FlyScriptButton.Size = UDim2.new(0, 180, 0, 35)
+FlyScriptButton.Font = Enum.Font.SourceSansBold
+FlyScriptButton.Text = "Cargar Fly & Noclip"
+FlyScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyScriptButton.TextSize = 14
 
--- Abrir / Cerrar menú con el botón principal
+local CornerFlyBtn = Instance.new("UICorner")
+CornerFlyBtn.CornerRadius = UDim.new(0, 6)
+CornerFlyBtn.Parent = FlyScriptButton
+
+FlyScriptButton.MouseButton1Click:Connect(function()
+    local rawUrl = "https://raw.githubusercontent.com/HolaSoyAndresgGamer/AndScript/refs/heads/main/flyandnoclip.lua"
+    
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(rawUrl))()
+    end)
+    
+    if success then
+        print("¡Fly y Noclip cargados desde la nube con éxito!")
+    else
+        warn("Error al cargar: " + tostring(err))
+    end
+end)
+
 OpenButton.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
-
--- ==========================================
--- AQUÍ AGREGAS TUS SCRIPTS COMO FUNCIONES
--- ==========================================
-
-addMenuButton("Imán Dual: Activar", function()
-    print("Aquí iría la lógica de tu Imán ON")
-end)
-
-addMenuButton("Imán Dual: Lanzar", function()
-    print("Aquí iría la lógica de Lanzar")
-end)
-
-addMenuButton("Huracán de Escombros", function()
-    print("Aquí iría tu script de huracán")
-end)
-
-addMenuButton("Cerrar / Borrar Todo", function()
-    ScreenGui:Destroy()
-    print("¡Menú cerrado y limpiado de la GUI!")
-end)
-
-print("¡Menu Hub personalizado cargado con éxito!")
