@@ -17,7 +17,7 @@ Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 Layout.VerticalAlignment = Enum.VerticalAlignment.Center
 
 -- 2. URL base de tu repositorio en GitHub (¡Cambia tu usuario y repositorio aquí!)
-local baseURL = "https://raw.githubusercontent.com/HolaSoyAndresGamer/AndScript/main/"
+local baseURL = "https://raw.githubusercontent.com/HolaSoyAndresGamer/AndScript/main/menuimportante.lua"
 
 -- 3. Función para descargar y montar cada módulo automáticamente
 local function loadModule(fileName)
