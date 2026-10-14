@@ -1,77 +1,42 @@
--- [[ Delta Hub Maestro - menuimportante.lua ]] --
+-- [[ AndScript Hub - Cargador Maestro (Menú Principal) ]] --
 local CoreGui = game:GetService("CoreGui")
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CloudHub"
-ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
+-- 1. Crear la Interfaz Principal del Hub
+local Gui = Instance.new("ScreenGui", CoreGui)
+Gui.Name, Gui.ResetOnSpawn = "AndScriptMasterHub", false
 
--- Botón flotante para abrir el menú principal
-local OpenButton = Instance.new("TextButton")
-OpenButton.Parent = ScreenGui
-OpenButton.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-OpenButton.Position = UDim2.new(0.05, 0, 0.15, 0)
-OpenButton.Size = UDim2.new(0, 130, 0, 40)
-OpenButton.Font = Enum.Font.SourceSansBold
-OpenButton.Text = "☁️ AndScript Hub"
-OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-OpenButton.TextSize = 16
-OpenButton.Active = true
-OpenButton.Draggable = true
+local Frame = Instance.new("Frame", Gui)
+Frame.BackgroundColor3, Frame.BackgroundTransparency = Color3.fromRGB(20, 20, 30), 0.3
+Frame.Position, Frame.Size = UDim2.new(0.02, 0, 0.4, 0), UDim2.new(0, 160, 0, 240)
+Frame.Active, Frame.Draggable = true, true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 8)
 
-local CornerOpen = Instance.new("UICorner")
-CornerOpen.CornerRadius = UDim.new(0, 8)
-CornerOpen.Parent = OpenButton
+local Layout = Instance.new("UIListLayout", Frame)
+Layout.SortOrder, Layout.Padding = Enum.SortOrder.LayoutOrder, UDim.new(0, 8)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.VerticalAlignment = Enum.VerticalAlignment.Center
 
--- Ventana principal del menú
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-MainFrame.Position = UDim2.new(0.05, 0, 0.22, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 150)
-MainFrame.Visible = false
-MainFrame.Active = true
-MainFrame.Draggable = true
+-- 2. URL base de tu repositorio en GitHub (¡Cambia tu usuario y repositorio aquí!)
+local baseURL = "https://raw.githubusercontent.com/HolaSoyAndresGamer/AndScript/refs/heads/main/menuimportante.lua"
 
-local CornerMain = Instance.new("UICorner")
-CornerMain.CornerRadius = UDim.new(0, 8)
-CornerMain.Parent = MainFrame
-
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = MainFrame
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 8)
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-
--- Botón dentro del menú que descarga y ejecuta tu flyandnoclip.lua desde la nube
-local FlyScriptButton = Instance.new("TextButton")
-FlyScriptButton.Parent = MainFrame
-FlyScriptButton.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-FlyScriptButton.Size = UDim2.new(0, 180, 0, 35)
-FlyScriptButton.Font = Enum.Font.SourceSansBold
-FlyScriptButton.Text = "Cargar Fly & Noclip"
-FlyScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyScriptButton.TextSize = 14
-
-local CornerFlyBtn = Instance.new("UICorner")
-CornerFlyBtn.CornerRadius = UDim.new(0, 6)
-CornerFlyBtn.Parent = FlyScriptButton
-
-FlyScriptButton.MouseButton1Click:Connect(function()
-    local rawUrl = "https://raw.githubusercontent.com/HolaSoyAndresgGamer/AndScript/refs/heads/main/flyandnoclip.lua"
-    
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(rawUrl))()
+-- 3. Función para descargar y montar cada módulo automáticamente
+local function loadModule(fileName)
+    local success, moduleFunc = pcall(function()
+        return loadstring(game:HttpGet(baseURL .. fileName))()
     end)
     
-    if success then
-        print("¡Fly y Noclip cargados desde la nube con éxito!")
+    if success and type(moduleFunc) == "function" then
+        -- Le pasamos el Frame (el contenedor) para que dibuje su propio botón
+        pcall(function()
+            moduleFunc(Frame)
+        end)
     else
-        warn("Error al cargar: " + tostring(err))
+        warn("No se pudo cargar el módulo: " .. fileName)
     end
-end)
+end
 
-OpenButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
+-- 4. Cargar todos tus archivos independientes con una sola línea por archivo
+loadModule("fly.lua")
+loadModule("noclip.lua")
+loadModule("magnet.lua")
+loadModule("brute.lua")
