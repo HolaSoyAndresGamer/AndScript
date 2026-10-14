@@ -46,7 +46,7 @@ return function(parentContainer)
 
     -- Acción al hacer clic en Lanzar
     b.MouseButton1Click:Connect(function()
-        -- Efecto visual de clic (cambia un momento a un azul más claro)
+        -- Efecto visual de clic
         b.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
         task.delay(0.15, function()
             if b and b.Parent then
@@ -54,19 +54,27 @@ return function(parentContainer)
             end
         end)
 
-        -- 1. Apagar el imán buscando el botón del imán en el menú y simulando su apagado si estaba encendido
+        -- Buscamos el botón del Imán visualmente dentro del contenedor y si está encendido, simulamos su clic o reseteamos su texto/color
         for _, child in ipairs(parentContainer:GetChildren()) do
             if child:IsA("Frame") then
-                local btn = child:FindFirstChildOfClass("TextButton")
-                if btn and btn.Text:find("Imán: ON") then
-                    for _, conn in ipairs(getconnections(btn.MouseButton1Click)) do
-                        conn:Fire()
+                for _, elem in ipairs(child:GetChildren()) do
+                    if elem:IsA("TextButton") and elem.Text:find("Imán: ON") then
+                        -- Cambiamos su texto y color de forma directa para reflejar que se apagó
+                        elem.Text = "Imán: OFF"
+                        elem.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+                        
+                        -- Intentamos disparar el evento si el ejecutor lo soporta, o dejamos que el ciclo se detenga
+                        pcall(function()
+                            for _, conn in ipairs(getconnections(elem.MouseButton1Click)) do
+                                conn:Fire()
+                            end
+                        end)
                     end
                 end
             end
         end
 
-        -- 2. Ejecutar el impulso de lanzamiento en los objetos cercanos
+        -- Lanzar los objetos cercanos
         local char = LocalPlayer.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
         if root then
