@@ -1,4 +1,4 @@
--- [[ Delta Hub - Módulo Fly & Noclip Ultra Estable ]] --
+-- [[ Delta Hub - Fly & Noclip Pro (Estabilidad Total en Móvil) ]] --
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
@@ -8,10 +8,12 @@ local Camera = workspace.CurrentCamera
 
 local isFlying, isNoclipActive = false, false
 local flySpeed, flyConn, noclipConn = 50, nil, nil
+local movingUp, movingDown = false, false
 
 local Gui = Instance.new("ScreenGui", CoreGui)
 Gui.Name, Gui.ResetOnSpawn = "FlyNoclipGui", false
 
+-- Menú Principal Fly / Noclip
 local Frame = Instance.new("Frame", Gui)
 Frame.BackgroundColor3, Frame.BackgroundTransparency = Color3.fromRGB(20, 20, 30), 0.2
 Frame.Position, Frame.Size = UDim2.new(0.02, 0, 0.4, 0), UDim2.new(0, 150, 0, 110)
@@ -22,15 +24,42 @@ local Layout = Instance.new("UIListLayout", Frame)
 Layout.SortOrder, Layout.Padding = Enum.SortOrder.LayoutOrder, UDim.new(0, 6)
 Layout.HorizontalAlignment, Layout.VerticalAlignment = Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center
 
-local function makeBtn(text)
-    local b = Instance.new("TextButton", Frame)
+local function makeBtn(text, parent)
+    local b = Instance.new("TextButton", parent)
     b.BackgroundColor3, b.Size = Color3.fromRGB(200, 50, 50), UDim2.new(0, 135, 0, 40)
     b.Font, b.Text, b.TextColor3, b.TextSize = Enum.Font.SourceSansBold, text, Color3.fromRGB(255, 255, 255), 14
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
     return b
 end
 
-local FlyBtn, NoclipBtn = makeBtn("Fly: OFF"), makeBtn("Noclip: OFF")
+local FlyBtn = makeBtn("Fly: OFF", Frame)
+local NoclipBtn = makeBtn("Noclip: OFF", Frame)
+
+-- Botones flotantes de Subir y Bajar (aparecen solo al volar)
+local UpDownFrame = Instance.new("Frame", Gui)
+UpDownFrame.BackgroundTransparency = 1
+UpDownFrame.Position = UDim2.new(0.85, 0, 0.4, 0)
+UpDownFrame.Size = UDim2.new(0, 60, 0, 120)
+UpDownFrame.Visible = false
+
+local UpDownLayout = Instance.new("UIListLayout", UpDownFrame)
+UpDownLayout.SortOrder, UpDownLayout.Padding = Enum.SortOrder.LayoutOrder, UDim.new(0, 10)
+UpDownLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local UpBtn = Instance.new("TextButton", UpDownFrame)
+UpBtn.BackgroundColor3, UpBtn.Size = Color3.fromRGB(50, 150, 250), UDim2.new(0, 55, 0, 50)
+UpBtn.Font, UpBtn.Text, UpBtn.TextColor3, UpBtn.TextSize = Enum.Font.SourceSansBold, "⬆️", Color3.fromRGB(255, 255, 255), 20
+Instance.new("UICorner", UpBtn).CornerRadius = UDim.new(0, 8)
+
+local DownBtn = Instance.new("TextButton", UpDownFrame)
+DownBtn.BackgroundColor3, DownBtn.Size = Color3.fromRGB(50, 150, 250), UDim2.new(0, 55, 0, 50)
+DownBtn.Font, DownBtn.Text, DownBtn.TextColor3, DownBtn.TextSize = Enum.Font.SourceSansBold, "⬇️", Color3.fromRGB(255, 255, 255), 20
+Instance.new("UICorner", DownBtn).CornerRadius = UDim.new(0, 8)
+
+UpBtn.MouseButton1Down:Connect(function() movingUp = true end)
+UpBtn.MouseButton1Up:Connect(function() movingUp = false end)
+DownBtn.MouseButton1Down:Connect(function() movingDown = true end)
+DownBtn.MouseButton1Up:Connect(function() movingDown = false end)
 
 FlyBtn.MouseButton1Click:Connect(function()
     isFlying = not isFlying
@@ -40,56 +69,52 @@ FlyBtn.MouseButton1Click:Connect(function()
     
     if isFlying then
         FlyBtn.BackgroundColor3, FlyBtn.Text = Color3.fromRGB(50, 200, 50), "Fly: ON"
+        UpDownFrame.Visible = true
+        
         if root and hum then
             hum.PlatformStand = true
             
-            local bv = Instance.new("BodyVelocity", root)
-            bv.Name = "StableFlyVel"
-            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bv.Velocity = Vector3.new(0, 0, 0)
-            
-            local bg = Instance.new("BodyGyro", root)
-            bg.Name = "StableFlyGyro"
-            bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            
-            flyConn = RunService.RenderStepped:Connect(function()
+            -- Sistema de vuelo por CFrame (Mucho más estable en móviles que las físicas)
+            flyConn = RunService.RenderStepped:Connect(function(dt)
                 if not char or not root.Parent then return end
                 
                 local moveDir = Vector3.new(0, 0, 0)
                 local camCF = Camera.CFrame
                 
-                -- Controles de PC (Teclado)
+                -- Movimiento con el joystick del juego en pantalla
+                if hum.MoveDirection.Magnitude > 0 then
+                    moveDir = moveDir + (camCF.LookVector * hum.MoveDirection.Z + camCF.RightVector * hum.MoveDirection.X)
+                end
+                
+                -- Controles de teclado (por si acaso juegas en PC)
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCF.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - Vector3.new(0, 1, 0) end
                 
-                -- Controles Táctiles (Móvil / Joystick del juego)
-                if hum.MoveDirection.Magnitude > 0 then
-                    local rawMove = (camCF.LookVector * hum.MoveDirection.Z + camCF.RightVector * hum.MoveDirection.X)
-                    moveDir = Vector3.new(rawMove.X, hum.MoveDirection.Y, rawMove.Z)
-                end
+                -- Altura con botones táctiles o teclado
+                local ySpeed = 0
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) or movingUp then ySpeed = ySpeed + flySpeed end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or movingDown then ySpeed = ySpeed - flySpeed end
                 
+                local finalVelocity = Vector3.new(0, 0, 0)
                 if moveDir.Magnitude > 0 then
-                    bv.Velocity = moveDir.Unit * flySpeed
-                else
-                    bv.Velocity = Vector3.new(0, 0.1, 0) -- Se queda suspendido estático sin caerse
+                    finalVelocity = moveDir.Unit * flySpeed
                 end
                 
-                bg.CFrame = camCF
+                root.CFrame = root.CFrame + ((finalVelocity + Vector3.new(0, ySpeed, 0)) * dt)
+                root.Velocity = Vector3.new(0, 0, 0) -- Anula la gravedad por completo
             end)
         end
     else
         FlyBtn.BackgroundColor3, FlyBtn.Text = Color3.fromRGB(200, 50, 50), "Fly: OFF"
+        UpDownFrame.Visible = false
+        movingUp, movingDown = false, false
+        
         if flyConn then flyConn:Disconnect() flyConn = nil end
         if char then
             if hum then hum.PlatformStand = false end
-            if root then
-                if root:FindFirstChild("StableFlyVel") then root.StableFlyVel:Destroy() end
-                if root:FindFirstChild("StableFlyGyro") then root.StableFlyGyro:Destroy() end
-            end
+            if root then root.Velocity = Vector3.new(0, 0, 0) end
         end
     end
 end)
