@@ -52,3 +52,5 @@ loadModule("noclip.lua")
 loadModule("magnet.lua")
 loadModule("brute.lua")
 loadModule("lanzar.lua")
+loadModule("invisibilidad.lua")
+
