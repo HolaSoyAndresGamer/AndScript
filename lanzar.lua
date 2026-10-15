@@ -2,9 +2,8 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 return function(parentContainer)
-    local fuerzaLanzamiento = 150 -- Fuerza por defecto
+    local fuerzaLanzamiento = 150
 
-    -- Contenedor horizontal para el botón y la cajita numérica
     local row = Instance.new("Frame", parentContainer)
     row.BackgroundTransparency = 1
     row.Size = UDim2.new(1, -10, 0, 40)
@@ -14,9 +13,9 @@ return function(parentContainer)
     uiLayout.SortOrder = Enum.SortOrder.LayoutOrder
     uiLayout.Padding = UDim.new(0, 6)
 
-    -- 1. Botón azul de acción
+    -- Botón de Lanzar (Azul)
     local b = Instance.new("TextButton", row)
-    b.BackgroundColor3 = Color3.fromRGB(50, 120, 220) -- Color azul
+    b.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
     b.Size = UDim2.new(0.65, 0, 1, 0)
     b.Font = Enum.Font.SourceSansBold
     b.Text = "Lanzar"
@@ -24,7 +23,7 @@ return function(parentContainer)
     b.TextSize = 14
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
 
-    -- 2. Cajita de texto para ajustar la fuerza
+    -- Cajita numérica de fuerza
     local tb = Instance.new("TextBox", row)
     tb.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
     tb.Size = UDim2.new(0.32, 0, 1, 0)
@@ -44,9 +43,7 @@ return function(parentContainer)
         end
     end)
 
-    -- Acción al hacer clic en Lanzar
     b.MouseButton1Click:Connect(function()
-        -- Efecto visual de clic
         b.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
         task.delay(0.15, function()
             if b and b.Parent then
@@ -54,7 +51,8 @@ return function(parentContainer)
             end
         end)
 
-        -- 1. Apagar el Imán buscando su botón en cualquier contenedor de la interfaz
+        -- 1. DESACTIVAR EL IMÁN DE VERDAD (Apaga la lógica y la interfaz)
+        getgenv().AndScriptMagnetActive = false
         pcall(function()
             for _, gui in ipairs(game:GetService("CoreGui"):GetChildren()) do
                 if gui.Name == "AndScriptMasterHub" then
@@ -67,18 +65,15 @@ return function(parentContainer)
                 end
             end
         end)
-        
-        -- Señal global opcional por si el imán lee una variable compartida
-        getgenv().AndScriptMagnetActive = false
 
-        -- 2. Lanzar objetos cercanos mediante radio (más efectivo que GetTouchingParts)
+        -- 2. LANZAR OBJETOS CERCANOS
         local char = LocalPlayer.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
         if root then
             for _, obj in ipairs(workspace:GetDescendants()) do
                 if obj:IsA("BasePart") and not obj.Anchored and obj.Parent ~= char and not obj:IsDescendantOf(char) then
                     local dist = (obj.Position - root.Position).Magnitude
-                    if dist < 20 then -- Si están a menos de 20 studs
+                    if dist < 20 then
                         obj.Velocity = root.CFrame.LookVector * fuerzaLanzamiento + Vector3.new(0, 40, 0)
                     end
                 end
